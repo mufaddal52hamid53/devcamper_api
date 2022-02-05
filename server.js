@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const connectDB = require('./config/db');
 const colors = require('colors');
 
+// route files
 const bootcamps = require('./routes/bootcamps');
 
 //Load env vars
@@ -12,6 +13,9 @@ dotenv.config({ path: './config/config.env' });
 connectDB();
 
 const app = express();
+
+// Body Parser
+app.use(express.json());
 
 if (process.env.NODE_ENV == 'development') app.use(morgan('dev'));
 
