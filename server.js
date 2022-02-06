@@ -3,23 +3,31 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
 const colors = require('colors');
+const errorHandler = require('./middleware/error');
 
 // route files
 const bootcamps = require('./routes/bootcamps');
+const courses = require('./routes/courses');
 
-//Load env vars
+// Load env vars
 dotenv.config({ path: './config/config.env' });
 
-connectDB();
-
 const app = express();
+
+// Connect DB
+connectDB();
 
 // Body Parser
 app.use(express.json());
 
+// Morgan middleware
 if (process.env.NODE_ENV == 'development') app.use(morgan('dev'));
 
+// Mount routes
 app.use('/api/v1/bootcamps', bootcamps);
+app.use('/api/v1/courses', courses);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
