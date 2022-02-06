@@ -9,12 +9,13 @@ const CourseSchema = new mongoose.Schema({
   scholarShipAvailable: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   bootcamp: { type: mongoose.Schema.ObjectId, ref: 'Bootcamp', require: true },
+  user: { type: mongoose.Schema.ObjectId, ref: 'User', require: true },
 });
 
 CourseSchema.statics.getAverageCost = async function (bootcampId) {
   const obj = await this.aggregate([{ $match: { bootcamp: bootcampId } }, { $group: { _id: '$bootcamp', averageCost: { $avg: '$tuition' } } }]);
   try {
-    await this.model('Bootcamp').findByIdAndUpdate(bootcampId, { averageCost: Math.ceil(obj[0].averageCost / 10) * 10 });
+    await this.model('Bootcamp').findByIdAndUpdate(bootcampId, { averageCost: Math.ceil(obj[0]?.averageCost / 10) * 10 || 0 });
   } catch (err) {
     console.log(err);
   }

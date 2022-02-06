@@ -44,6 +44,7 @@ const BootcampSchema = new mongoose.Schema(
     acceptGi: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    user: { type: mongoose.Schema.ObjectId, ref: 'User', require: true },
   },
   {
     toJSON: { virtuals: true },
