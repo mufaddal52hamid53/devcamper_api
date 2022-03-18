@@ -22,9 +22,7 @@ exports.register = asyncHandler(async (req, res, next) => {
   const confirmEmailToken = user.generateEmailConfirmToken();
 
   // Create reset url
-  const confirmEmailURL = `${req.protocol}://${req.get(
-    'host',
-  )}/api/v1/auth/confirmemail?token=${confirmEmailToken}`;
+  const confirmEmailURL = `${req.protocol}://${req.get('host')}/api/v1/auth/confirmemail?token=${confirmEmailToken}`;
 
   const message = `You are receiving this email because you need to confirm your email address. Please make a GET request to: \n\n ${confirmEmailURL}`;
 
@@ -148,9 +146,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // Create reset url
-  const resetUrl = `${req.protocol}://${req.get(
-    'host',
-  )}/api/v1/auth/resetpassword/${resetToken}`;
+  const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken}`;
 
   const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
 
@@ -178,10 +174,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 // @access    Public
 exports.resetPassword = asyncHandler(async (req, res, next) => {
   // Get hashed token
-  const resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(req.params.resettoken)
-    .digest('hex');
+  const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex');
 
   const user = await User.findOne({
     resetPasswordToken,
@@ -215,10 +208,7 @@ exports.confirmEmail = asyncHandler(async (req, res, next) => {
   }
 
   const splitToken = token.split('.')[0];
-  const confirmEmailToken = crypto
-    .createHash('sha256')
-    .update(splitToken)
-    .digest('hex');
+  const confirmEmailToken = crypto.createHash('sha256').update(splitToken).digest('hex');
 
   // get user by token
   const user = await User.findOne({
@@ -247,9 +237,7 @@ const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
 
   const options = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000,
-    ),
+    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
     httpOnly: true,
   };
 
