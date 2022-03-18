@@ -1,57 +1,78 @@
-const advancedResults = (model, populate, select) => async (req, res, next) => {
+const advancedResults = (model, populate) => async (req, res, next) => {
+  let query;
+
+  // Copy req.query
   const reqQuery = { ...req.query };
 
-  const removeFields = ['select', 'sort', 'limit', 'page'];
+  // Fields to exclude
+  const removeFields = ['select', 'sort', 'page', 'limit'];
 
-  removeFields.forEach((p) => delete reqQuery[p]);
+  // Loop over removeFields and delete them from reqQuery
+  removeFields.forEach(param => delete reqQuery[param]);
 
+  // Create query string
   let queryStr = JSON.stringify(reqQuery);
 
-  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`);
+  // Create operators ($gt, $gte, etc)
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
-  let query = model.find(JSON.parse(queryStr));
+  // Finding resource
+  query = model.find(JSON.parse(queryStr));
 
+  // Select Fields
   if (req.query.select) {
-    const fields = req.query.select.replace(/\,/g, ' ');
+    const fields = req.query.select.split(',').join(' ');
     query = query.select(fields);
   }
 
+  // Sort
   if (req.query.sort) {
-    query = query.sort(req.query.sort.replace(/\,/g, ' '));
+    const sortBy = req.query.sort.split(',').join(' ');
+    query = query.sort(sortBy);
   } else {
     query = query.sort('-createdAt');
   }
 
-  const limit = parseInt(req.query.limit) || 25;
-  const page = parseInt(req.query.page) || 1;
+  // Pagination
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 25;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
-  const total = await model.countDocuments();
+  const total = await model.countDocuments(JSON.parse(queryStr));
 
-  query = query.limit(limit).skip(startIndex);
+  query = query.skip(startIndex).limit(limit);
 
   if (populate) {
-    query.populate(populate, select);
+    query = query.populate(populate);
   }
 
+  // Executing query
   const results = await query;
 
+  // Pagination result
   const pagination = {};
 
-  if (startIndex > 0) {
-    pagination.previous = { page: page - 1, limit: limit };
-  }
-  pagination.current = { limit: limit, page: page };
   if (endIndex < total) {
-    pagination.next = { page: page + 1, limit: limit };
+    pagination.next = {
+      page: page + 1,
+      limit
+    };
+  }
+
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit
+    };
   }
 
   res.advancedResults = {
-    sucess: true,
+    success: true,
     count: results.length,
     pagination,
-    data: results,
+    data: results
   };
+
   next();
 };
 
